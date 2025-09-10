@@ -64,8 +64,14 @@ upload.addEventListener('change', async function () {
         const latRef = EXIF.getTag(this, "GPSLatitudeRef");
         const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
+
+        // Fungsi bantu untuk cek array kosong atau null
+        function isEmptyCoord(coord) {
+          return !coord || !Array.isArray(coord) || coord.length === 0;
+        }
+
         // Jika salah satu metadata tidak lengkap, wajib input manual
-        if (!date || !lat || !lon || !latRef || !lonRef) {
+        if (!date || isEmptyCoord(lat) || isEmptyCoord(lon) || !latRef || !lonRef) {
           showManualForm(true);
           manualMode = true;
           info.innerHTML = `<span class='text-yellow-700'>Meta data tidak lengkap (waktu/tanggal/latitude/longitude). Silakan input manual di bawah.</span>`;
