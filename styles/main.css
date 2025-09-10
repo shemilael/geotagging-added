@@ -1,0 +1,131 @@
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h2 {
+    color: #333;
+}
+
+input[type="file"] {
+    margin: 20px 0;
+    padding: 10px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    background-color: #fff;
+    transition: border-color 0.3s;
+}
+
+input[type="file"]:hover {
+    border-color: #0056b3;
+}
+
+canvas {
+    display: none;
+}
+
+img {
+    max-width: 100%;
+    margin-top: 10px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    transition: transform 0.3s;
+}
+
+img:hover {
+    transform: scale(1.05);
+}
+
+#downloadBtn {
+    margin-top: 10px;
+    display: none;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#downloadBtn:hover {
+    background-color: #0056b3;
+}
+
+/* Custom fallback and tweaks for extra polish */
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.upload-input::-webkit-file-upload-button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.5em 1.2em;
+  border-radius: 0.5em;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+.upload-input::-webkit-file-upload-button:hover {
+  background: #1d4ed8;
+}
+
+.upload-input::file-selector-button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 0.5em 1.2em;
+  border-radius: 0.5em;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+.upload-input::file-selector-button:hover {
+  background: #1d4ed8;
+}
+
+.result-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.download-btn {
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    #downloadBtn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  h1 {
+    font-size: 1.25rem !important;
+  }
+  .footer {
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+  }
+}
