@@ -1,3 +1,45 @@
+// Watermark
+const watermarkUpload = document.getElementById('watermarkUpload');
+const watermarkPosition = document.getElementById('watermarkPosition');
+const watermarkSizeSlider = document.getElementById('watermarkSize');
+const watermarkSizeValue = document.getElementById('watermarkSizeValue');
+let watermarkImage = null;
+
+// Update label persentase ukuran watermark
+if (watermarkSizeSlider && watermarkSizeValue) {
+  watermarkSizeSlider.addEventListener('input', function() {
+    watermarkSizeValue.textContent = watermarkSizeSlider.value + '%';
+    if (lastOverlayData && currentImage) drawToCanvas(lastOverlayData);
+  });
+}
+
+// Handle upload watermark
+if (watermarkUpload) {
+  watermarkUpload.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) {
+      watermarkImage = null;
+      if (lastOverlayData && currentImage) drawToCanvas(lastOverlayData);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        watermarkImage = img;
+        if (lastOverlayData && currentImage) drawToCanvas(lastOverlayData);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (watermarkPosition) {
+  watermarkPosition.addEventListener('change', function() {
+    if (lastOverlayData && currentImage) drawToCanvas(lastOverlayData);
+  });
+}
 
 
 const upload = document.getElementById('upload');
@@ -58,40 +100,32 @@ upload.addEventListener('change', async function () {
       currentImage = img;
       currentImageDataUrl = e.target.result;
       EXIF.getData(img, async function () {
-        const date = EXIF.getTag(this, "DateTimeOriginal");
+        const date = EXIF.getTag(this, "DateTimeOriginal") || "Date not available";
         const lat = EXIF.getTag(this, "GPSLatitude");
         const lon = EXIF.getTag(this, "GPSLongitude");
         const latRef = EXIF.getTag(this, "GPSLatitudeRef");
         const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
+        let locationText = "Location not available";
+        let latitudeText = "Latitude: tidak tersedia";
+        let longitudeText = "Longitude: tidak tersedia";
+        let latitude = null, longitude = null;
 
-        // Fungsi bantu untuk cek array kosong atau null
-        function isEmptyCoord(coord) {
-          return !coord || !Array.isArray(coord) || coord.length === 0;
+        if (lat && lon && latRef && lonRef) {
+          latitude = toDecimal(lat, latRef);
+          longitude = toDecimal(lon, lonRef);
+          locationText = await getLocation(latitude, longitude);
+          latitudeText = `Latitude: ${latitude.toFixed(6)}`;
+          longitudeText = `Longitude: ${longitude.toFixed(6)}`;
         }
 
-        // Jika salah satu metadata tidak lengkap, wajib input manual
-        if (!date || isEmptyCoord(lat) || isEmptyCoord(lon) || !latRef || !lonRef) {
+        // Jika metadata tidak ada, tampilkan form input manual
+        if (!(lat && lon && latRef && lonRef) || date === "Date not available") {
           showManualForm(true);
           manualMode = true;
-          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak lengkap (waktu/tanggal/latitude/longitude). Silakan input manual di bawah.</span>`;
+          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak ditemukan. Silakan input manual di bawah.</span>`;
           return;
         }
-
-        let latitude = toDecimal(lat, latRef);
-        let longitude = toDecimal(lon, lonRef);
-
-        // Jika hasil konversi NaN (data tidak valid), tetap wajib input manual
-        if (isNaN(latitude) || isNaN(longitude)) {
-          showManualForm(true);
-          manualMode = true;
-          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak valid (latitude/longitude tidak terbaca). Silakan input manual di bawah.</span>`;
-          return;
-        }
-
-        let locationText = await getLocation(latitude, longitude);
-        let latitudeText = `Latitude: ${latitude.toFixed(6)}`;
-        let longitudeText = `Longitude: ${longitude.toFixed(6)}`;
 
         info.innerHTML = `
           <strong>Timestamp:</strong> ${date}<br>
@@ -140,6 +174,47 @@ async function drawToCanvas({date, locationText, latitude, longitude}) {
   canvas.height = currentImage.height;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(currentImage, 0, 0);
+
+  // Watermark
+  if (watermarkImage) {
+    // Ukuran watermark (persen dari lebar foto)
+    const sizePercent = watermarkSizeSlider ? parseInt(watermarkSizeSlider.value, 10) : 18;
+    const wmWidth = Math.round(canvas.width * sizePercent / 100);
+    const aspect = watermarkImage.width / watermarkImage.height;
+    const wmHeight = Math.round(wmWidth / aspect);
+    // Posisi watermark
+    let wx = 0, wy = 0, pad = 18;
+    const pos = watermarkPosition ? watermarkPosition.value : 'bottom-right';
+    switch (pos) {
+      case 'top-left':
+        wx = pad;
+        wy = pad;
+        break;
+      case 'top-right':
+        wx = canvas.width - wmWidth - pad;
+        wy = pad;
+        break;
+      case 'bottom-left':
+        wx = pad;
+        wy = canvas.height - wmHeight - pad;
+        break;
+      case 'bottom-right':
+        wx = canvas.width - wmWidth - pad;
+        wy = canvas.height - wmHeight - pad;
+        break;
+      case 'center':
+        wx = (canvas.width - wmWidth) / 2;
+        wy = (canvas.height - wmHeight) / 2;
+        break;
+      default:
+        wx = canvas.width - wmWidth - pad;
+        wy = canvas.height - wmHeight - pad;
+    }
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(watermarkImage, wx, wy, wmWidth, wmHeight);
+    ctx.restore();
+  }
 
   // Ambil preferensi user
   const pos = textPosition.value || 'bottom-left';
