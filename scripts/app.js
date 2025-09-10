@@ -80,6 +80,15 @@ upload.addEventListener('change', async function () {
 
         let latitude = toDecimal(lat, latRef);
         let longitude = toDecimal(lon, lonRef);
+
+        // Jika hasil konversi NaN (data tidak valid), tetap wajib input manual
+        if (isNaN(latitude) || isNaN(longitude)) {
+          showManualForm(true);
+          manualMode = true;
+          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak valid (latitude/longitude tidak terbaca). Silakan input manual di bawah.</span>`;
+          return;
+        }
+
         let locationText = await getLocation(latitude, longitude);
         let latitudeText = `Latitude: ${latitude.toFixed(6)}`;
         let longitudeText = `Longitude: ${longitude.toFixed(6)}`;
