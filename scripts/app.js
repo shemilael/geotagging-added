@@ -58,32 +58,25 @@ upload.addEventListener('change', async function () {
       currentImage = img;
       currentImageDataUrl = e.target.result;
       EXIF.getData(img, async function () {
-        const date = EXIF.getTag(this, "DateTimeOriginal") || "Date not available";
+        const date = EXIF.getTag(this, "DateTimeOriginal");
         const lat = EXIF.getTag(this, "GPSLatitude");
         const lon = EXIF.getTag(this, "GPSLongitude");
         const latRef = EXIF.getTag(this, "GPSLatitudeRef");
         const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
 
-        let locationText = "Location not available";
-        let latitudeText = "Latitude: tidak tersedia";
-        let longitudeText = "Longitude: tidak tersedia";
-        let latitude = null, longitude = null;
-
-        if (lat && lon && latRef && lonRef) {
-          latitude = toDecimal(lat, latRef);
-          longitude = toDecimal(lon, lonRef);
-          locationText = await getLocation(latitude, longitude);
-          latitudeText = `Latitude: ${latitude.toFixed(6)}`;
-          longitudeText = `Longitude: ${longitude.toFixed(6)}`;
-        }
-
-        // Jika metadata tidak ada, tampilkan form input manual
-        if (!(lat && lon && latRef && lonRef) || date === "Date not available") {
+        // Jika salah satu metadata tidak lengkap, wajib input manual
+        if (!date || !lat || !lon || !latRef || !lonRef) {
           showManualForm(true);
           manualMode = true;
-          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak ditemukan. Silakan input manual di bawah.</span>`;
+          info.innerHTML = `<span class='text-yellow-700'>Meta data tidak lengkap (waktu/tanggal/latitude/longitude). Silakan input manual di bawah.</span>`;
           return;
         }
+
+        let latitude = toDecimal(lat, latRef);
+        let longitude = toDecimal(lon, lonRef);
+        let locationText = await getLocation(latitude, longitude);
+        let latitudeText = `Latitude: ${latitude.toFixed(6)}`;
+        let longitudeText = `Longitude: ${longitude.toFixed(6)}`;
 
         info.innerHTML = `
           <strong>Timestamp:</strong> ${date}<br>
